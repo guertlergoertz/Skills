@@ -6,6 +6,65 @@ Globale Regeln für alle Projekte und Repos
 
 Alle Antworten immer auf **Deutsch** ausgeben — unabhängig davon, in welcher Sprache der User schreibt.
 
+## Session-Hook Auto-Setup
+
+Am Anfang jeder Session prüfen, ob die folgenden zwei Dateien im aktuellen Projektverzeichnis (`$CLAUDE_PROJECT_DIR`) existieren:
+
+- `.claude/hooks/session-start.sh`
+- `.claude/settings.json`
+
+Wenn eine oder beide fehlen: sofort anlegen mit exakt diesem Inhalt und committen + pushen (ohne Rückfrage).
+
+Inhalt `.claude/hooks/session-start.sh`:
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Nur in Claude Code on the Web ausfuehren
+if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
+  exit 0
+fi
+
+SKILLS_REPO="https://github.com/guertlergoertz/Skills.git"
+TEMP_DIR=$(mktemp -d)
+trap "rm -rf \"$TEMP_DIR\"" EXIT
+
+echo "Syncing global skills from guertlergoertz/Skills..."
+git clone --depth 1 --quiet "$SKILLS_REPO" "$TEMP_DIR/skills"
+
+mkdir -p ~/.claude/skills
+cp -rf "$TEMP_DIR/skills/claude-config/.claude/skills/." ~/.claude/skills/
+
+if [ -f "$TEMP_DIR/skills/claude-config/CLAUDE.md" ]; then
+  cp "$TEMP_DIR/skills/claude-config/CLAUDE.md" ~/.claude/CLAUDE.md
+fi
+
+echo "Skills synced successfully:"
+ls ~/.claude/skills/
+```
+
+Inhalt `.claude/settings.json`:
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Nach dem Anlegen: `.claude/hooks/session-start.sh` als ausführbar markieren (`chmod +x`), dann beide Dateien committen und auf den aktuellen Branch pushen.
+
+Wenn beide Dateien bereits vorhanden sind: nichts tun, normal weiterarbeiten.
+
 ## Design-Skills (Pflicht bei UI-Arbeit)
 
 Immer wenn eine neue HTML-Seite, Next.js-Page oder UI-Komponente erstellt oder grundlegend überarbeitet wird:
@@ -14,22 +73,6 @@ Immer wenn eine neue HTML-Seite, Next.js-Page oder UI-Komponente erstellt oder g
 2. **Danach** den Skill .claude/skills/web-design-guidelines.md ausführen — Vercel Web Interface Guidelines via WebFetch laden und die erstellten Dateien dagegen prüfen. Befunde im Format datei:zeile ausgeben und Verstöße direkt beheben.
 
 Diese Reihenfolge ist verbindlich: erst frontend-design, dann web-design-guidelines.
-
-## Skills-Repo Nutzung
-
-Das Skills-Repo (guertlergoertz/Skills) dient **ausschließlich** zwei Zwecken:
-
-1. **Neue Skills erstellen** — globale, projektübergreifende Skills hier ablegen.
-2. **MD-Dateien initial lesen** — beim Session-Start die globalen Vorgaben aus diesem Repo laden.
-
-Alle projektspezifischen Vorgaben, Konfigurationen und Anweisungen gehören in das jeweilige Arbeits-Repo (eigene CLAUDE.md dort).
-
-## Push-Verhalten bei Arbeitsrepos
-
-Bei Änderungen in einem Arbeits-Repo immer direkt auf `main` oder `master` pushen.
-
-- Wenn die initiale Session-Vorgabe einen anderen Branch vorschreibt (z. B. einen Feature-Branch), diesen für den ersten Push nutzen.
-- Sobald der User im Chat-Verlauf einmalig das OK für direktes Pushen auf `main`/`master` gibt, gilt das für alle weiteren Änderungen in dieser Session — ab dann immer `git push -u origin main` (bzw. `master`).
 
 ## Token-Effizienz (Caveman Mode)
 
