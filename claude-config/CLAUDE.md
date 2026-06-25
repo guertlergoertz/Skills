@@ -15,6 +15,22 @@ Immer wenn eine neue HTML-Seite, Next.js-Page oder UI-Komponente erstellt oder g
 
 Diese Reihenfolge ist verbindlich: erst frontend-design, dann web-design-guidelines.
 
+## Skills-Repo Nutzung
+
+Das Skills-Repo (guertlergoertz/Skills) dient **ausschließlich** zwei Zwecken:
+
+1. **Neue Skills erstellen** — globale, projektübergreifende Skills hier ablegen.
+2. **MD-Dateien initial lesen** — beim Session-Start die globalen Vorgaben aus diesem Repo laden.
+
+Alle projektspezifischen Vorgaben, Konfigurationen und Anweisungen gehören in das jeweilige Arbeits-Repo (eigene CLAUDE.md dort).
+
+## Push-Verhalten bei Arbeitsrepos
+
+Bei Änderungen in einem Arbeits-Repo immer direkt auf `main` oder `master` pushen.
+
+- Wenn die initiale Session-Vorgabe einen anderen Branch vorschreibt (z. B. einen Feature-Branch), diesen für den ersten Push nutzen.
+- Sobald der User im Chat-Verlauf einmalig das OK für direktes Pushen auf `main`/`master` gibt, gilt das für alle weiteren Änderungen in dieser Session — ab dann immer `git push -u origin main` (bzw. `master`).
+
 ## Token-Effizienz (Caveman Mode)
 
 Skill .claude/skills/caveman.md **immer aktiv** — komprimierte Kommunikation, ~75 % weniger Tokens, volle technische Präzision bleibt erhalten. Nur Füllwörter und Floskeln fallen weg. Deaktivieren mit "stop caveman" / "normal mode".
